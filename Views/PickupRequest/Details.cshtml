@@ -1,0 +1,173 @@
+@model RecyclingApp.Models.PickupRequest
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@{
+    ViewData["Title"] = "Request Details";
+    var user = await UserManager.GetUserAsync(User);
+    var isCollector = await UserManager.IsInRoleAsync(user, "Collector");
+    var isAdmin = await UserManager.IsInRoleAsync(user, "Admin");
+}
+
+@if (TempData["Success"] != null) { <div class="alert alert-success" role="status">@TempData["Success"]</div> }
+@if (TempData["Error"] != null) { <div class="alert alert-danger" role="alert">@TempData["Error"]</div> }
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+<h2 class="text-primary-green"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Request Details #@Model.Id</h2>
+    <a href="javascript:history.back()" class="btn btn-outline-secondary">Back</a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">Items to Collect</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Waste Type</th>
+                                <th>Quantity (kg)</th>
+                                <th>Price/kg</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if(Model.RequestItems != null)
+                            {
+                                foreach (var item in Model.RequestItems)
+                                {
+                                    <tr>
+                                        <td>@item.WasteType?.Name</td>
+                                        <td>@item.QuantityKg</td>
+                                        <td>@item.WasteType?.PricePerKg.ToString("N2") EGP</td>
+<td>@((item.QuantityKg * (item.WasteType?.PricePerKg ?? 0)).ToString("N2")) EGP</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr class="fw-bold fs-5">
+                                <td colspan="3" class="text-end">Total Value:</td>
+                                <td class="text-primary-green">@Model.TotalValue.ToString("N2") EGP</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="card-title text-primary-green mb-3">Status Information</h5>
+                <p class="mb-2"><strong>Status:</strong> 
+                    @switch (Model.Status)
+                    {
+                        case "Pending":
+                            <span class="badge bg-warning text-dark fs-6">Pending</span>
+                            break;
+                        case "Approved":
+                                        <span class="badge bg-info text-dark fs-6">Approved - waiting for collector</span>
+                                        break;
+                                    case "Failed":
+                                        <span class="badge bg-dark">Failed - fee applied</span>
+                                        break;
+                                    case "Rejected":
+                                        <span class="badge bg-danger fs-6">Rejected</span>
+                                        break;
+                                    case "Accepted":
+                            <span class="badge bg-info text-dark fs-6">Accepted</span>
+                            break;
+                        case "Collected":
+                            <span class="badge bg-primary fs-6">Collected</span>
+                            break;
+                        case "Completed":
+                            <span class="badge bg-success fs-6">Completed</span>
+                            break;
+                        default:
+                            <span class="badge bg-secondary fs-6">@Model.Status</span>
+                            break;
+                    }
+                </p>
+                <p class="mb-2"><strong>Scheduled:</strong> @Model.ScheduledAt.ToString("MMM dd, yyyy")</p>
+                <p class="mb-0"><strong>Created:</strong> @Model.CreatedAt.ToString("MMM dd, yyyy HH:mm")</p>
+
+                @if ((isCollector || isAdmin) && Model.User != null)
+                {
+                    <hr />
+                    <h5 class="card-title text-primary-green mb-3">Customer Details</h5>
+                    <p class="mb-1"><i class="bi bi-person me-2"></i>@Model.User.Name</p>
+                    <p class="mb-1"><i class="bi bi-telephone me-2"></i>@Model.User.Phone</p>
+                    <p class="mb-0"><i class="bi bi-geo-alt me-2"></i>@Model.User.Address</p>
+                }
+
+                @if (Model.Collector != null)
+                {
+                    <hr />
+                    <h5 class="card-title text-primary-green mb-3">Collector Details</h5>
+                    <p class="mb-1"><i class="bi bi-truck me-2"></i>@Model.Collector.Name</p>
+                    <p class="mb-0"><i class="bi bi-telephone me-2"></i>@Model.Collector.Phone</p>
+                }
+            </div>
+        </div>
+
+        @if (Model.Status == "Failed")
+        {
+            <div class="alert alert-danger" role="alert">
+                <h5 class="alert-heading"><i class="bi bi-exclamation-triangle me-2" aria-hidden="true"></i>Pickup failed - waste did not match the request</h5>
+                <p class="mb-1"><strong>Service fee recorded:</strong> @Model.PenaltyAmount.ToString("N2") EGP</p>
+                @if (!string.IsNullOrWhiteSpace(Model.CollectorNote))
+                {
+                    <p class="mb-0"><strong>Collector note:</strong> @Model.CollectorNote</p>
+                }
+            </div>
+        }
+
+        @if (isCollector && Model.Status == "Accepted")
+        {
+            <div class="card shadow-sm border-danger mb-3">
+                <div class="card-body">
+                    <h5 class="card-title text-danger mb-2"><i class="bi bi-flag me-2" aria-hidden="true"></i>Waste not as described?</h5>
+                    <p class="text-muted small mb-3">If you arrived and the waste is a different type, much less than requested, or not there, report it. The request fails and the policy fee is recorded.</p>
+                    <form asp-action="ReportMismatch" method="post" onsubmit="return confirm('Report this pickup as not matching the request? A service fee will be recorded.');">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <textarea name="note" class="form-control mb-2" rows="2" minlength="5" required placeholder="What did you find? (e.g. only paper, no plastic)"></textarea>
+                        <button type="submit" class="btn btn-outline-danger btn-sm">Report mismatch</button>
+                    </form>
+                </div>
+            </div>
+        }
+
+        @if (isCollector && (Model.Status == "Approved" || Model.Status == "Accepted" || Model.Status == "Collected"))
+        {
+            <div class="card shadow-sm border-primary">
+                <div class="card-body">
+                    <h5 class="card-title text-primary-green mb-3">Update Status</h5>
+                    <form asp-action="UpdateStatus" method="post">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <div class="input-group">
+                            <select name="status" class="form-select">
+                                @if (Model.Status == "Approved")
+                                {
+                                    <option value="Accepted">Accept Task</option>
+                                }
+                                else if (Model.Status == "Accepted")
+                                {
+                                    <option value="Collected">Mark as Collected</option>
+                                }
+                                else if (Model.Status == "Collected")
+                                {
+                                    <option value="Completed">Mark as Completed</option>
+                                }
+                            </select>
+                            <button type="submit" class="btn btn-primary-green">Update</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        }
+    </div>
+</div>

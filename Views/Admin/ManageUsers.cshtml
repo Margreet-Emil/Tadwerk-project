@@ -1,0 +1,68 @@
+@model IEnumerable<RecyclingApp.Models.ApplicationUser>
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@{
+    ViewData["Title"] = "Manage Users";
+}
+
+<h2 class="text-primary-green mb-4"><i class="bi bi-people me-2" aria-hidden="true"></i>Manage Users</h2>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Role</th>
+                        <th>Address</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model)
+                    {
+                        var roles = await UserManager.GetRolesAsync(user);
+                        var role = roles.FirstOrDefault() ?? "User";
+                        
+                        <tr>
+                            <td>@user.Name</td>
+                            <td>@user.Email</td>
+                            <td>@user.PhoneNumber</td>
+                            <td>
+                                @if (role == "Admin")
+                                {
+                                    <span class="badge bg-danger">Admin</span>
+                                }
+                                else if (role == "Collector")
+                                {
+                                    <span class="badge bg-primary">Collector</span>
+                                }
+                                else if (role == "Business")
+                                {
+                                    <span class="badge bg-info text-dark">Business</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Customer</span>
+                                }
+                            </td>
+                            <td>@user.Address</td>
+                            <td>
+                                @if (user.Email != User.Identity.Name)
+                                {
+                                    <form asp-action="DeleteUser" method="post" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                                        <input type="hidden" name="id" value="@user.Id" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i> Delete</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,40 @@
+# Query: .Customer
+# ContextLines: 1
+
+10 results - 5 files
+
+Views\Admin\AllRequests.cshtml:
+  27                              <td>@item.Id</td>
+  28:                             <td>@(item.Customer?.Name ?? "N/A")</td>
+  29                              <td>@(item.Collector?.Name ?? "Unassigned")</td>
+
+Views\Admin\Dashboard.cshtml:
+  122                                  <td>#@req.Id</td>
+  123:                                 <td>@req.Customer?.Name</td>
+  124                                  <td>@req.CreatedAt.ToString("MMM dd, yyyy")</td>
+
+Views\PickupRequest\AvailableRequests.cshtml:
+  24                          <div class="d-flex justify-content-between align-items-start mb-3">
+  25:                             <h5 class="card-title mb-0"><i class="bi bi-person-circle me-2"></i>@(item.Customer?.Name ?? "Customer")</h5>
+  26                              <span class="badge bg-warning text-dark">Pending</span>
+
+  29                          <p class="mb-2"><i class="bi bi-calendar-event me-2 text-muted"></i><strong>Scheduled:</strong> @item.ScheduledAt.ToString("MMM dd, yyyy")</p>
+  30:                         <p class="mb-2"><i class="bi bi-geo-alt me-2 text-muted"></i><strong>Address:</strong> @(item.Customer?.Address ?? "N/A")</p>
+  31                          
+
+Views\PickupRequest\Details.cshtml:
+  85  
+  86:                 @if ((isCollector || isAdmin) && Model.Customer != null)
+  87                  {
+
+  89                      <h5 class="card-title text-primary-green mb-3">Customer Details</h5>
+  90:                     <p class="mb-1"><i class="bi bi-person me-2"></i>@Model.Customer.Name</p>
+  91:                     <p class="mb-1"><i class="bi bi-telephone me-2"></i>@Model.Customer.Phone</p>
+  92:                     <p class="mb-0"><i class="bi bi-geo-alt me-2"></i>@Model.Customer.Address</p>
+  93                  }
+
+Views\PickupRequest\MyCollections.cshtml:
+  36                          <td>@item.Id</td>
+  37:                         <td>@item.Customer?.Name</td>
+  38:                         <td>@item.Customer?.Address</td>
+  39                          <td>@item.ScheduledAt.ToString("MMM dd, yyyy")</td>

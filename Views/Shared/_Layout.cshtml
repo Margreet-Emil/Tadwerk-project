@@ -1,0 +1,215 @@
+@using Microsoft.AspNetCore.Identity
+@using RecyclingApp.Models
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - TADWEERK</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        .bg-primary-green { background-color: #2E7D32 !important; }
+        .text-primary-green { color: #2E7D32 !important; }
+        .btn-primary-green { background-color: #2E7D32; border-color: #2E7D32; color: white; }
+        .btn-primary-green:hover { background-color: #1b5e20; border-color: #1b5e20; color: white; }
+
+        /* ===== TADWEERK light theme + motion ===== */
+        :root { --g:#2E7D32; --g2:#43a047; --g3:#81c784; --soft:#E8F5E9; --bg:#F7FAF4; --ink:#14261a; --muted:#5b6b5f; --line:#e3ebe0; --radius:18px; --shadow:0 8px 28px rgba(0,0,0,.06); }
+        html, body { height: 100%; display: flex; flex-direction: column; }
+        html { scroll-behavior: smooth; }
+        body { font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif; line-height:1.55; background:var(--bg); color:var(--ink); overflow-x:hidden; position:relative; }
+        main { flex: 1; }
+        /* floating background blobs on every page */
+        body::before, body::after { content:""; position:fixed; z-index:-1; border-radius:50%; filter:blur(70px); pointer-events:none; animation: tw-float 14s ease-in-out infinite; }
+        body::before { width:380px; height:380px; background:#c8e6c9; top:-120px; left:-100px; opacity:.55; }
+        body::after { width:320px; height:320px; background:#dcedc8; bottom:-120px; right:-90px; opacity:.6; animation-delay:-6s; }
+
+        /* navbar */
+        .tw-nav { position:sticky; top:0; z-index:30; background:rgba(247,250,244,.88); backdrop-filter:blur(10px); border-bottom:1px solid var(--line); box-shadow:none; }
+        .tw-nav .navbar-brand { color:var(--g); font-weight:800; letter-spacing:.5px; }
+        .tw-nav .navbar-brand i { display:inline-block; animation: tw-spin 9s linear infinite; font-size:1.25rem; vertical-align:-2px; }
+        .tw-nav .nav-link, .tw-nav .nav-link.text-white { color:var(--ink) !important; border-radius:10px; padding:.5rem .85rem; transition:background-color .2s ease; }
+        .tw-nav .nav-link:hover { background:var(--soft); }
+        .tw-nav .badge.bg-light { background:var(--g) !important; color:#fff !important; }
+        .tw-nav .text-white { color:var(--ink) !important; }
+        .tw-nav .navbar-toggler { border-color:var(--line); }
+
+        /* cards, buttons, forms */
+        .card { border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow) !important; background:#fff; transition:transform .3s ease, box-shadow .3s ease, border-color .3s ease; }
+        .card:not(:has(form)):hover { transform:translateY(-4px); box-shadow:0 18px 40px rgba(46,125,50,.16) !important; border-color:var(--g3); }
+        .card-header { background:var(--soft) !important; border-bottom:1px solid var(--line); border-radius:var(--radius) var(--radius) 0 0 !important; }
+        .btn { position:relative; overflow:hidden; border-radius:12px; min-height:40px; font-weight:600; cursor:pointer; transition:transform .2s ease, box-shadow .2s ease, background-color .2s ease, border-color .2s ease; }
+        .btn:hover { transform:translateY(-2px); }
+        .btn:active { transform:translateY(1px); }
+        .btn-sm { min-height:36px; }
+        .btn-primary-green, .btn-success { box-shadow:0 6px 18px rgba(46,125,50,.28); }
+        .btn-primary-green::after, .btn-success::after { content:""; position:absolute; top:0; left:-70%; width:50%; height:100%; background:linear-gradient(100deg,transparent,rgba(255,255,255,.4),transparent); transform:skewX(-20deg); animation: tw-sweep 3.4s 1s infinite; pointer-events:none; }
+        .form-control, .form-select { border-radius:12px; min-height:44px; border-color:#d3dfd0; transition:border-color .2s ease, box-shadow .2s ease; }
+        .form-control:focus, .form-select:focus { border-color:var(--g2); box-shadow:0 0 0 4px rgba(67,160,71,.18); }
+        main h2 { font-weight:800; letter-spacing:-.02em; }
+        .badge { font-weight:600; animation: tw-pop .4s ease both; }
+        .alert { border-radius:14px; border:0; animation: tw-rise .5s ease both; }
+
+        /* tables */
+        .table { --bs-table-bg:transparent; }
+        .table > :not(caption) > * > * { padding-top:.8rem; padding-bottom:.8rem; }
+        .table thead.table-light th, .table-light { background:var(--soft) !important; color:#1b5e20; }
+        .table tbody tr { transition:background-color .2s ease; }
+        .table tbody tr:hover { background:#f1f8f1; }
+
+        .tw-auth-ico { display:inline-grid; place-items:center; width:64px; height:64px; border-radius:50%; background:var(--soft); color:var(--g); font-size:1.9rem; animation: tw-pulse 2.4s infinite; }
+        .tw-auth-ico i { display:inline-block; animation: tw-spin 9s linear infinite; }
+        main h2 i.bi { color:var(--g2); }
+        .display-4 { transition:transform .4s ease; } .card:hover .display-4 { transform:scale(1.12) rotate(-6deg); }
+        .text-center > .text-muted i.bi, .py-5 i.bi { display:inline-block; animation: tw-bob 5s ease-in-out infinite; }
+        /* page enter + scroll reveal */
+        main > * { animation: tw-rise .6s ease both; }
+        .js .rv { opacity:0; transform:translateY(30px); transition:opacity .7s ease, transform .7s ease; transition-delay:var(--d,0s); }
+        .js .rv.in { opacity:1; transform:none; }
+
+        a:focus-visible, button:focus-visible, .btn:focus-visible, .form-control:focus-visible, .form-select:focus-visible, .form-check-input:focus-visible { outline:3px solid var(--g3); outline-offset:2px; box-shadow:none; }
+
+        @@keyframes tw-rise { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:none; } }
+        @@keyframes tw-float { 0%,100% { transform:translate(0,0) scale(1); } 50% { transform:translate(30px,-26px) scale(1.08); } }
+        @@keyframes tw-spin { to { transform:rotate(360deg); } }
+        @@keyframes tw-sweep { 0% { left:-70%; } 45%,100% { left:130%; } }
+        @@keyframes tw-pop { from { opacity:0; transform:scale(.7); } to { opacity:1; transform:none; } }
+        @@keyframes tw-shine { 0% { background-position:0 50%; } 50% { background-position:100% 50%; } 100% { background-position:0 50%; } }
+        @@keyframes tw-pulse { 0% { box-shadow:0 0 0 0 rgba(46,125,50,.5); } 70%,100% { box-shadow:0 0 0 14px rgba(46,125,50,0); } }
+        @@keyframes tw-marq { to { transform:translateX(-50%); } }
+        @@keyframes tw-bob { 0%,100% { translate:0 0; } 50% { translate:0 -10px; } }
+        @@keyframes tw-line { to { opacity:1; transform:none; } }
+        @@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation:none !important; transition:none !important; } .js .rv { opacity:1; transform:none; } }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-light tw-nav mb-4" aria-label="Main navigation">
+            <div class="container">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index" aria-label="TADWEERK home"><i class="bi bi-recycle me-1" aria-hidden="true"></i>TADWEERK</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        @if (!SignInManager.IsSignedIn(User)) { <li class="nav-item"><a class="nav-link text-white" asp-area="" asp-controller="Home" asp-action="Index">Home</a></li> }
+                        <li class="nav-item"><a class="nav-link text-white" asp-area="" asp-controller="Home" asp-action="About">About</a></li>
+                        @if (SignInManager.IsSignedIn(User))
+                        {
+                            var user = await UserManager.GetUserAsync(User);
+                            var isCustomerOrBusiness = await UserManager.IsInRoleAsync(user, "Customer") || await UserManager.IsInRoleAsync(user, "Business");
+                            var isCollector = await UserManager.IsInRoleAsync(user, "Collector");
+                            var isAdmin = await UserManager.IsInRoleAsync(user, "Admin");
+
+                            if (isCustomerOrBusiness)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-white" asp-area="" asp-controller="PickupRequest" asp-action="Index">My Requests</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-white" asp-area="" asp-controller="PickupRequest" asp-action="Create">New Request</a>
+                                </li>
+                            }
+                            else if (isCollector)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-white" asp-area="" asp-controller="PickupRequest" asp-action="AvailableRequests">My New Tasks</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-white" asp-area="" asp-controller="PickupRequest" asp-action="MyCollections">My Collections</a>
+                                </li>
+                            }
+                            else if (isAdmin)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-white" asp-area="" asp-controller="Admin" asp-action="Dashboard">Dashboard</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-white" asp-area="" asp-controller="Admin" asp-action="ManageUsers">Users</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-white" asp-area="" asp-controller="Admin" asp-action="ManageWasteTypes">Waste Types</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-white" asp-area="" asp-controller="Admin" asp-action="AllRequests">All Requests</a>
+                                </li>
+                            }
+                        }
+                    </ul>
+                    <ul class="navbar-nav">
+                        @if (SignInManager.IsSignedIn(User))
+                        {
+                            var user = await UserManager.GetUserAsync(User);
+                            var roles = await UserManager.GetRolesAsync(user);
+                            <li class="nav-item d-flex align-items-center me-3">
+                                <span class="text-white">Hello, @user.Name <span class="badge bg-light text-primary-green ms-1">@roles.FirstOrDefault()</span></span>
+                            </li>
+                            <li class="nav-item">
+                                <form class="form-inline" asp-area="" asp-controller="Account" asp-action="Logout" method="post">
+                                    <button type="submit" class="nav-link btn btn-link text-white">Logout</button>
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-area="" asp-controller="Account" asp-action="Register">Register</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-area="" asp-controller="Account" asp-action="Login">Login</a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <main role="main" class="@(ViewData["Full"] != null ? "" : "container pb-4")">
+        @RenderBody()
+    </main>
+
+    <footer class="border-top footer text-muted mt-auto py-3" style="background:#fff;">
+        <div class="container text-center">
+            &copy; 2026 - TADWEERK - Smart Waste Collection System
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function twImgFail(img) { var fb = img.getAttribute('data-fb'); if (fb) { var list = fb.split('|'); var next = list.shift(); if (list.length) { img.setAttribute('data-fb', list.join('|')); } else { img.removeAttribute('data-fb'); } img.src = next; } else { img.remove(); } }
+    </script>
+    <script>
+        (function () {
+            document.documentElement.classList.remove('no-js');
+            document.documentElement.classList.add('js');
+            var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+            var sel = 'main .card, main h2, main .table-responsive, main .alert';
+            var list = document.querySelectorAll(sel);
+            list.forEach(function (el, i) { if (!el.classList.contains('rv')) { el.classList.add('rv'); el.style.setProperty('--d', Math.min(i % 6, 5) * 0.07 + 's'); } });
+            function count(el) {
+                var n = parseFloat(el.dataset.n), dec = el.dataset.dec ? +el.dataset.dec : 2, s = null;
+                if (reduce) { el.textContent = n.toFixed(dec); return; }
+                function f(ts) { s = s || ts; var p = Math.min((ts - s) / 1100, 1), e = 1 - Math.pow(1 - p, 3); el.textContent = (n * e).toFixed(dec); if (p < 1) requestAnimationFrame(f); }
+                requestAnimationFrame(f);
+            }
+            var io = new IntersectionObserver(function (es) {
+                es.forEach(function (e) {
+                    if (e.isIntersecting) {
+                        e.target.classList.add('in');
+                        e.target.querySelectorAll('[data-n]').forEach(count);
+                        io.unobserve(e.target);
+                    }
+                });
+            }, { threshold: 0.12 });
+            document.querySelectorAll('.rv').forEach(function (el) { io.observe(el); });
+        })();
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

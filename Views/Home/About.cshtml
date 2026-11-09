@@ -1,0 +1,184 @@
+@{
+    ViewData["Title"] = "About";
+    ViewData["Full"] = true;
+
+    // Real photos from Wikimedia Commons (free licences). A local file in wwwroot/images always wins; Commons is the fallback.
+    string Commons(string file) => "https://commons.wikimedia.org/wiki/Special:FilePath/" + Uri.EscapeDataString(file.Replace(' ', '_')).Replace("%28", "(").Replace("%29", ")") + "?width=900";
+    var whoFb = Commons("Bridge of Don Recycling Centre.jpg");
+    var problemFb = Commons("Collecting plastic bottle caps for a charity.jpg");
+    var solutionFb = Commons("A Pedicab with Cardboard for Recycling.jpg");
+    var visionFb = Commons("Steel recycling bales.jpg");
+    var strip1Fb = Commons("Cardboard recycling Zion.JPG");
+    var strip2Fb = Commons("Amsterdam recycling.jpg");
+    var strip3Fb = Commons("A metal container for recycling paper.jpg");
+}
+
+<style>
+    main > header, main > section { animation: none; }
+    .ab-wrap { max-width: 1100px; margin: 0 auto; padding: 0 1.25rem; position: relative; }
+    .ab-hero { position: relative; overflow: hidden; text-align: center; padding: 5rem 0 4rem; margin-top: -1.5rem; }
+    .ab-blob { position: absolute; border-radius: 50%; filter: blur(60px); opacity: .55; animation: tw-float 12s ease-in-out infinite; pointer-events: none; }
+    .ab-b1 { width: 340px; height: 340px; background: #a5d6a7; top: -110px; left: -80px; } .ab-b2 { width: 280px; height: 280px; background: #c5e1a5; top: 20px; right: -80px; animation-delay: -5s; }
+    .ab-pill { display: inline-flex; align-items: center; gap: .5rem; padding: .4rem 1rem; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--g); font-size: .875rem; font-weight: 600; }
+    .ab-h1 { font-size: clamp(2.2rem, 5.5vw, 3.8rem); font-weight: 800; letter-spacing: -.03em; line-height: 1.08; margin: 1.3rem auto 1rem; max-width: 820px; }
+    .ab-grad { background: linear-gradient(90deg, #1b5e20, #43a047, #9ccc65, #1b5e20); background-size: 250% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: tw-shine 5s linear infinite; }
+    .ab-lead { color: var(--muted); font-size: 1.15rem; max-width: 660px; margin: 0 auto; }
+    .ab-sec { padding: 4rem 0; } .ab-alt { background: #fff; border-block: 1px solid var(--line); }
+    .ab-h2 { font-size: clamp(1.6rem, 3.4vw, 2.2rem); font-weight: 800; letter-spacing: -.02em; text-align: center; margin: 0 0 .5rem; }
+    .ab-sub { color: var(--muted); text-align: center; max-width: 620px; margin: 0 auto 2.2rem; }
+    .ab-grid { display: grid; gap: 1.1rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+    .ab-card { background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 1.6rem; box-shadow: 0 8px 28px rgba(0,0,0,.05); transition: transform .3s, box-shadow .3s, border-color .3s; }
+    .ab-card:hover { transform: translateY(-8px); box-shadow: 0 22px 46px rgba(46,125,50,.18); border-color: var(--g3); }
+    .ab-ico { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 14px; background: var(--soft); color: var(--g); font-size: 1.4rem; margin-bottom: 1rem; transition: transform .4s, background-color .3s, color .3s; }
+    .ab-card:hover .ab-ico { transform: rotate(-10deg) scale(1.15); background: var(--g); color: #fff; }
+    .ab-card h3 { font-size: 1.1rem; font-weight: 700; margin: 0 0 .4rem; } .ab-card p { color: var(--muted); margin: 0; font-size: .95rem; }
+    .ab-big { font-size: 2.4rem; font-weight: 800; color: var(--g); line-height: 1.1; margin-bottom: .4rem; }
+    .ab-split { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; }
+    .ab-img { position: relative; height: 380px; border-radius: 26px; overflow: hidden; background: linear-gradient(135deg, #c8e6c9, #81c784); box-shadow: 0 24px 60px rgba(27,94,32,.22); display: grid; place-items: center; }
+    .ab-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .8s; } .ab-img:hover img { transform: scale(1.07); }
+    .ab-img .ph { font-size: 4rem; color: rgba(27,94,32,.45); }
+    .ab-split h2 { text-align: left; } .ab-split p { color: var(--muted); }
+    .ab-list { list-style: none; padding: 0; margin: 1rem 0 0; } .ab-list li { display: flex; gap: .6rem; margin-bottom: .6rem; } .ab-list i { color: var(--g2); margin-top: .2rem; }
+    .ab-faq details { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 1rem 1.25rem; margin-bottom: .75rem; transition: box-shadow .2s; }
+    .ab-faq details[open] { box-shadow: 0 10px 28px rgba(46,125,50,.12); border-color: var(--g3); }
+    .ab-faq summary { cursor: pointer; font-weight: 700; list-style: none; display: flex; justify-content: space-between; gap: 1rem; } .ab-faq summary::-webkit-details-marker { display: none; }
+    .ab-faq summary::after { content: "+"; color: var(--g); font-size: 1.4rem; line-height: 1; } .ab-faq details[open] summary::after { content: "\2212"; }
+    .ab-faq p { margin: .75rem 0 0; color: var(--muted); }
+    .ab-note { color: var(--muted); font-size: .85rem; text-align: center; margin-top: 1.25rem; }
+    .ab-cta { text-align: center; padding: 4rem 1.25rem; margin: 0 0 3.5rem; border-radius: 28px; color: #fff; background: linear-gradient(120deg, #1b5e20, #2e7d32, #43a047, #2e7d32); background-size: 300% 100%; animation: tw-shine 10s ease infinite; }
+    .ab-cta h2 { font-size: clamp(1.6rem, 3.4vw, 2.2rem); font-weight: 800; margin: 0 0 .5rem; } .ab-cta p { color: #d9f0da; }
+    .ab-btn { display: inline-flex; align-items: center; gap: .5rem; padding: .8rem 1.6rem; border-radius: 14px; font-weight: 600; background: #fff; color: var(--g); text-decoration: none; transition: transform .2s, box-shadow .2s; } .ab-btn:hover { color: var(--g); transform: translateY(-3px); box-shadow: 0 12px 28px rgba(0,0,0,.2); }
+    @@media (max-width: 860px) { .ab-split { grid-template-columns: 1fr; } .ab-split h2 { text-align: center; } }
+
+    .ab-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; margin-top: 3rem; }
+    .ab-strip .ab-img { height: 220px; }
+    .ab-sec h3.ab-h3 { font-size: 1.15rem; font-weight: 700; margin: 0 0 .4rem; }
+    .ab-text p { color: var(--muted); font-size: 1.05rem; }
+    .ab-split > div { min-width: 0; } .ab-split.rev .ab-img { order: 2; }
+    .ab-steps { display: grid; gap: 1.1rem; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); counter-reset: st; }
+    .ab-steps .ab-card::before { counter-increment: st; content: counter(st); display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--g); color: #fff; font-weight: 700; margin-bottom: 1rem; animation: tw-pulse 2.4s infinite; }
+    .ab-checks { list-style: none; padding: 0; margin: 0; display: grid; gap: .75rem; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+    .ab-checks li { display: flex; gap: .7rem; align-items: flex-start; background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 1rem 1.2rem; transition: transform .3s, box-shadow .3s; }
+    .ab-checks li:hover { transform: translateY(-4px); box-shadow: 0 14px 34px rgba(46,125,50,.15); }
+    .ab-checks i { color: var(--g2); font-size: 1.2rem; margin-top: .1rem; }
+    .ab-quote { position: relative; overflow: hidden; border-radius: 28px; min-height: 340px; display: grid; place-items: center; text-align: center; padding: 3rem 1.5rem; color: #fff; background: linear-gradient(135deg, #1b5e20, #2e7d32); }
+    .ab-quote img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .35; }
+    .ab-quote > div { position: relative; max-width: 700px; } .ab-quote h2 { color: #fff; font-size: clamp(1.7rem, 3.6vw, 2.4rem); font-weight: 800; }
+    .ab-quote p { color: #e3f4e4; font-size: 1.1rem; margin: 0; }
+    .ab-closing { text-align: center; color: var(--muted); max-width: 680px; margin: 2rem auto 0; font-size: 1.05rem; }
+    @@media (max-width: 860px) { .ab-strip { grid-template-columns: minmax(0, 1fr); } .ab-split.rev .ab-img { order: 0; } }
+</style>
+
+<header class="ab-hero">
+    <div class="ab-blob ab-b1" aria-hidden="true"></div><div class="ab-blob ab-b2" aria-hidden="true"></div>
+    <div class="ab-wrap">
+        <span class="ab-pill"><i class="bi bi-globe-europe-africa" aria-hidden="true"></i> About TADWEERK</span>
+        <h1 class="ab-h1">Turning Waste into Value, <span class="ab-grad">Building a Greener Future.</span></h1>
+        <p class="ab-lead">An innovative waste collection and recycling platform for individuals and businesses across Egypt.</p>
+        <div class="ab-strip" aria-hidden="true">
+            <div class="ab-img"><i class="bi bi-box-seam ph"></i><img src="~/images/strip1.jpg" data-fb="@strip1Fb" alt="" loading="lazy" onerror="twImgFail(this)" /></div>
+            <div class="ab-img"><i class="bi bi-recycle ph"></i><img src="~/images/strip2.jpg" data-fb="@strip2Fb" alt="" loading="lazy" onerror="twImgFail(this)" /></div>
+            <div class="ab-img"><i class="bi bi-trash3 ph"></i><img src="~/images/strip3.jpg" data-fb="@strip3Fb" alt="" loading="lazy" onerror="twImgFail(this)" /></div>
+        </div>
+    </div>
+</header>
+
+<section class="ab-sec">
+    <div class="ab-wrap ab-split">
+        <div class="ab-text rv">
+            <h2 class="ab-h2">Who We Are</h2>
+            <p>TADWEERK is an innovative waste collection and recycling platform designed to make waste management easier, more accessible, and more sustainable for individuals and businesses across Egypt.</p>
+            <p>Our mission is to reduce the environmental impact of solid waste by connecting households and businesses with waste collectors, helping recyclable materials find their way back into the production cycle instead of ending up in streets, landfills, or other improper disposal sites.</p>
+            <p>We believe that a cleaner environment starts with simple actions, and technology can make those actions easier for everyone.</p>
+        </div>
+        <div class="ab-img rv" style="--d:.1s"><i class="bi bi-recycle ph" aria-hidden="true"></i><img src="~/images/about.jpg" data-fb="@whoFb" alt="A recycling facility" loading="lazy" onerror="twImgFail(this)" /></div>
+    </div>
+</section>
+
+<section class="ab-sec ab-alt">
+    <div class="ab-wrap">
+        <h2 class="ab-h2 rv">The Problem We Want to Solve</h2>
+        <p class="ab-sub rv" style="--d:.08s">Waste management is one of the major environmental challenges facing communities around the world, including Egypt. When solid waste is not properly collected, sorted, or disposed of, it can create serious problems.</p>
+        <div class="ab-split rev" style="margin-bottom:2.5rem">
+            <div class="ab-img rv"><i class="bi bi-cup-straw ph" aria-hidden="true"></i><img src="~/images/problem.jpg" data-fb="@problemFb" alt="Plastic bottle caps collected for recycling" loading="lazy" onerror="twImgFail(this)" /></div>
+            <div class="ab-grid" style="grid-template-columns: minmax(0, 1fr)">
+                <div class="ab-card rv"><h3 class="ab-h3"><i class="bi bi-cloud-haze2 me-2 text-success" aria-hidden="true"></i>Environmental Pollution</h3><p>Improper waste disposal can contaminate soil and water and contribute to air pollution, affecting ecosystems and the quality of life in nearby communities.</p></div>
+                <div class="ab-card rv" style="--d:.08s"><h3 class="ab-h3"><i class="bi bi-cup-straw me-2 text-success" aria-hidden="true"></i>Plastic Pollution</h3><p>Plastic waste can remain in the environment for decades or even centuries, depending on its type and environmental conditions. It can harm wildlife and break down into smaller particles that are difficult to remove.</p></div>
+            </div>
+        </div>
+        <div class="ab-grid">
+            <div class="ab-card rv"><div class="ab-ico"><i class="bi bi-boxes" aria-hidden="true"></i></div><h3>Wasted Natural Resources</h3><p>Materials such as paper, plastic, glass, and metals can often be recycled. When they are thrown away instead, valuable resources are lost, increasing the need for new raw materials.</p></div>
+            <div class="ab-card rv" style="--d:.1s"><div class="ab-ico"><i class="bi bi-thermometer-sun" aria-hidden="true"></i></div><h3>Climate Change</h3><p>Organic waste decomposing in landfills can release methane, a powerful greenhouse gas. In addition, producing new materials from raw resources often requires more energy than using recycled materials.</p></div>
+            <div class="ab-card rv" style="--d:.2s"><div class="ab-ico"><i class="bi bi-heart-pulse" aria-hidden="true"></i></div><h3>Unhealthy Communities</h3><p>Accumulated waste can attract pests, block drainage systems, and create unpleasant and potentially unsafe living conditions.</p></div>
+        </div>
+        <p class="ab-closing rv">These challenges highlight the importance of improving waste collection and encouraging responsible recycling practices.</p>
+    </div>
+</section>
+
+<section class="ab-sec">
+    <div class="ab-wrap ab-split">
+        <div class="ab-img rv"><i class="bi bi-truck ph" aria-hidden="true"></i><img src="~/images/solution.jpg" data-fb="@solutionFb" alt="A man collecting cardboard for recycling" loading="lazy" onerror="twImgFail(this)" /></div>
+        <div class="ab-text rv" style="--d:.1s">
+            <h2 class="ab-h2">Our Solution</h2>
+            <p>TADWEERK uses technology to connect people who have recyclable waste with collectors who can pick it up.</p>
+            <p>Through our platform, users can submit waste collection requests, specify the type and quantity of waste, and provide the information needed to arrange a pickup. Our platform aims to make the process more organized, convenient, and transparent for everyone involved.</p>
+            <ul class="ab-list">
+                <li><i class="bi bi-house-heart-fill" aria-hidden="true"></i><span><strong>For Households:</strong> An easy way to request the collection of recyclable household waste.</span></li>
+                <li><i class="bi bi-shop" aria-hidden="true"></i><span><strong>For Businesses:</strong> A more organized way for shops, offices, and caf&eacute;s to arrange waste pickups.</span></li>
+                <li><i class="bi bi-truck" aria-hidden="true"></i><span><strong>For Collectors:</strong> Opportunities to receive collection requests and earn income from completed pickups.</span></li>
+                <li><i class="bi bi-tree-fill" aria-hidden="true"></i><span><strong>For the Environment:</strong> Supporting recycling and helping reduce the amount of recyclable waste sent to landfills or disposed of improperly.</span></li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<section class="ab-sec ab-alt">
+    <div class="ab-wrap">
+        <h2 class="ab-h2 rv">How TADWEERK Works</h2>
+        <p class="ab-sub rv" style="--d:.08s">Five steps from your door to a second life for your waste.</p>
+        <div class="ab-steps">
+            <div class="ab-card rv"><h3>Create an Account</h3><p>Users register on the platform and provide the necessary information.</p></div>
+            <div class="ab-card rv" style="--d:.08s"><h3>Submit a Waste Collection Request</h3><p>Users specify the waste type, estimated quantity, and pickup location.</p></div>
+            <div class="ab-card rv" style="--d:.16s"><h3>Request Verification</h3><p>An administrator reviews the submitted request to help ensure that its details are accurate.</p></div>
+            <div class="ab-card rv" style="--d:.24s"><h3>Waste Collection</h3><p>A collector can handle the approved request and collect the specified waste.</p></div>
+            <div class="ab-card rv" style="--d:.32s"><h3>Give Waste a Second Life</h3><p>Collected recyclable materials can be directed toward appropriate recycling channels, where they may be processed and used to produce new materials.</p></div>
+        </div>
+    </div>
+</section>
+
+<section class="ab-sec">
+    <div class="ab-wrap">
+        <h2 class="ab-h2 rv">Our Environmental Impact</h2>
+        <p class="ab-sub rv" style="--d:.08s">At TADWEERK, we believe that waste should be viewed as a resource rather than simply something to throw away. By encouraging the collection and recovery of recyclable materials, our platform supports several important environmental goals.</p>
+        <ul class="ab-checks">
+            <li class="rv"><i class="bi bi-check-circle-fill" aria-hidden="true"></i><span>Reducing improper waste disposal.</span></li>
+            <li class="rv" style="--d:.06s"><i class="bi bi-check-circle-fill" aria-hidden="true"></i><span>Encouraging the recovery and reuse of valuable materials.</span></li>
+            <li class="rv" style="--d:.12s"><i class="bi bi-check-circle-fill" aria-hidden="true"></i><span>Conserving natural resources through recycling.</span></li>
+            <li class="rv" style="--d:.18s"><i class="bi bi-check-circle-fill" aria-hidden="true"></i><span>Supporting more responsible waste management practices.</span></li>
+            <li class="rv" style="--d:.24s"><i class="bi bi-check-circle-fill" aria-hidden="true"></i><span>Creating economic opportunities for waste collectors.</span></li>
+            <li class="rv" style="--d:.3s"><i class="bi bi-check-circle-fill" aria-hidden="true"></i><span>Raising awareness about the importance of environmental responsibility.</span></li>
+        </ul>
+        <p class="ab-closing rv">Our goal is to make responsible waste disposal a practical part of everyday life.</p>
+    </div>
+</section>
+
+<section class="ab-wrap" style="padding-bottom:4rem">
+    <div class="ab-quote rv">
+        <img src="~/images/vision.jpg" data-fb="@visionFb" alt="" loading="lazy" onerror="twImgFail(this)" />
+        <div>
+            <h2>Our Vision</h2>
+            <p>We envision a future where recycling is accessible to every household and business, waste collectors have better opportunities, and recyclable materials are recovered instead of being wasted. Through technology, collaboration, and environmental awareness, TADWEERK aims to contribute to a cleaner, more sustainable future for Egypt.</p>
+        </div>
+    </div>
+</section>
+
+<section class="ab-wrap">
+    <div class="ab-cta rv">
+        <h2>Join the Movement</h2>
+        <p>Every bottle, piece of cardboard, and recyclable can represents an opportunity to reduce waste and recover valuable resources. Join TADWEERK and become part of the solution.</p>
+        <p><strong>Together, we can turn waste into value and take a step toward a cleaner Egypt.</strong></p>
+        <a asp-controller="Account" asp-action="Register" class="ab-btn">Join TADWEERK <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+    </div>
+</section>
+
+<p class="ab-note" style="padding-bottom:1.5rem">Photos: Wikimedia Commons contributors, used under Creative Commons licences (see each file page on commons.wikimedia.org for the authors).</p>

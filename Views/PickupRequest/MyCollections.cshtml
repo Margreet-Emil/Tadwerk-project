@@ -1,0 +1,88 @@
+@model IEnumerable<RecyclingApp.Models.PickupRequest>
+@{
+    ViewData["Title"] = "My Collections";
+}
+
+<h2 class="text-primary-green mb-4"><i class="bi bi-truck me-2" aria-hidden="true"></i>My Collections</h2>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-light border text-center p-5">
+        <i class="bi bi-truck fs-1 text-muted mb-3 d-block"></i>
+        <h4>No collections assigned</h4>
+        <p class="text-muted">New tasks assigned by the admin will show up in "My New Tasks".</p>
+        <a asp-action="AvailableRequests" class="btn btn-primary-green mt-2">My New Tasks</a>
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Customer</th>
+                    <th>Address</th>
+                    <th>Scheduled Date</th>
+                    <th>Status</th>
+                    <th>Total Value</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.Id</td>
+                        <td>@item.User?.Name</td>
+                        <td>@item.User?.Address</td>
+                        <td>@item.ScheduledAt.ToString("MMM dd, yyyy")</td>
+                        <td>
+                            @switch (item.Status)
+                            {
+                                case "Accepted":
+                                    <span class="badge bg-info text-dark">Accepted</span>
+                                    break;
+                                case "Collected":
+                                    <span class="badge bg-primary">Collected</span>
+                                    break;
+                                case "Completed":
+                                    <span class="badge bg-success">Completed</span>
+                                    break;
+                                default:
+                                    <span class="badge bg-secondary">@item.Status</span>
+                                    break;
+                            }
+                        </td>
+                        <td class="fw-bold">@item.TotalValue.ToString("N2") EGP</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">Details</a>
+                                
+                                @if (item.Status != "Completed")
+                                {
+                                    <form asp-action="UpdateStatus" method="post" class="d-flex align-items-center m-0">
+                                        <input type="hidden" name="id" value="@item.Id" />
+                                        <div class="input-group input-group-sm">
+                                            <select name="status" class="form-select form-select-sm" style="width: auto;">
+                                                @if (item.Status == "Accepted")
+                                                {
+                                                    <option value="Collected">Mark Collected</option>
+                                                }
+                                                else if (item.Status == "Collected")
+                                                {
+                                                    <option value="Completed">Mark Completed</option>
+                                                }
+                                            </select>
+                                            <button type="submit" class="btn btn-sm btn-primary-green">Update</button>
+                                        </div>
+                                    </form>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

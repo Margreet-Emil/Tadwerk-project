@@ -1,0 +1,101 @@
+@model IEnumerable<RecyclingApp.Models.PickupRequest>
+@{
+    ViewData["Title"] = "All Requests";
+    var collectors = (ViewBag.Collectors as IEnumerable<RecyclingApp.Models.ApplicationUser>) ?? Enumerable.Empty<RecyclingApp.Models.ApplicationUser>();
+}
+
+<h2 class="text-primary-green mb-4"><i class="bi bi-list-check me-2" aria-hidden="true"></i>All Pickup Requests</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success" role="status">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger" role="alert">@TempData["Error"]</div>
+}
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Customer</th>
+                        <th>Collector</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Total Value</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.Id</td>
+                            <td>@(item.User?.Name ?? "N/A")</td>
+                            <td>@(item.Collector?.Name ?? "Unassigned")</td>
+                            <td>
+                                @switch (item.Status)
+                                {
+                                    case "Pending":
+                                        <span class="badge bg-warning text-dark">Pending</span>
+                                        break;
+                                    case "Approved":
+                                        <span class="badge bg-info text-dark">Approved - waiting for collector</span>
+                                        break;
+                                    case "Failed":
+                                        <span class="badge bg-dark">Failed - fee applied</span>
+                                        break;
+                                    case "Rejected":
+                                        <span class="badge bg-danger">Rejected</span>
+                                        break;
+                                    case "Accepted":
+                                        <span class="badge bg-info text-dark">Accepted</span>
+                                        break;
+                                    case "Collected":
+                                        <span class="badge bg-primary">Collected</span>
+                                        break;
+                                    case "Completed":
+                                        <span class="badge bg-success">Completed</span>
+                                        break;
+                                    default:
+                                        <span class="badge bg-secondary">@item.Status</span>
+                                        break;
+                                }
+                            </td>
+                            <td>@item.ScheduledAt.ToString("MMM dd, yyyy")</td>
+                            <td>@item.TotalValue.ToString("N2") EGP</td>
+                            <td>
+                                <div class="d-flex flex-wrap align-items-center gap-2">
+                                    <a asp-controller="PickupRequest" asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">Details</a>
+
+                                    @if (item.Status == "Pending")
+                                    {
+                                        <form asp-action="ApproveRequest" method="post" class="d-flex align-items-center gap-1 m-0">
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <select name="collectorId" class="form-select form-select-sm" style="width:auto;" required aria-label="Assign collector to request @item.Id">
+                                                <option value="">Assign collector...</option>
+                                                @foreach (var c in collectors)
+                                                {
+                                                    <option value="@c.Id">@c.Name</option>
+                                                }
+                                            </select>
+                                            <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                                        </form>
+                                        <form asp-action="RejectRequest" method="post" class="m-0" onsubmit="return confirm('Reject this request?');">
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">Reject</button>
+                                        </form>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

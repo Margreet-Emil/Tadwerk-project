@@ -1,0 +1,322 @@
+@model RecyclingApp.ViewModels.HomeViewModel
+@{
+    ViewData["Title"] = "Smart Waste Collection";
+    ViewData["Full"] = true;
+
+    string IconFor(string name)
+    {
+        var n = (name ?? "").ToLower();
+        if (n.Contains("plastic")) return "bi-cup-straw";
+        if (n.Contains("paper") || n.Contains("card")) return "bi-newspaper";
+        if (n.Contains("metal")) return "bi-gear";
+        if (n.Contains("glass")) return "bi-cup-hot";
+        if (n.Contains("electr")) return "bi-cpu";
+        return "bi-recycle";
+    }
+    string Slug(string name) => new string((name ?? "").ToLower().Where(char.IsLetter).ToArray());
+    var types = Model.WasteTypes;
+
+    // Real photos from Wikimedia Commons (free licences). A local file in wwwroot/images always wins; Commons is the fallback.
+    string Commons(string file) => "https://commons.wikimedia.org/wiki/Special:FilePath/" + Uri.EscapeDataString(file.Replace(' ', '_')).Replace("%28", "(").Replace("%29", ")") + "?width=900";
+    var heroFb = Commons("Bridge of Don Recycling Centre.jpg");
+    var aboutFb = Commons("A Pedicab with Cardboard for Recycling.jpg");
+    var plasticFb = Commons("Collecting plastic bottle caps for a charity.jpg");
+    var paperFb = Commons("Cardboard recycling Zion.JPG");
+    var wasteFb = new Dictionary<string, string>
+    {
+        ["plastic"] = plasticFb,
+        ["paper"] = paperFb,
+        ["metals"] = Commons("Steel recycling bales.jpg"),
+        ["metal"] = Commons("Steel recycling bales.jpg"),
+        ["glass"] = string.Join("|", new[] { "Glass bottles for recycling.jpg", "Glass recycling.jpg", "Bottle bank.jpg", "Glass bottles.jpg" }.Select(Commons)),
+        ["electronics"] = string.Join("|", new[] { "Electronic waste.jpg", "E-waste.jpg", "Electronic waste recycling.jpg", "Electronic scrap.jpg" }.Select(Commons))
+    };
+
+    // DEMO DATA: sample feedback shown until real customer reviews exist. Replace with real people's reviews before a public launch.
+    var reviews = new[]
+    {
+        new { Name = "Sara M.",   Role = "Customer",    Stars = 5, Photo = "r1.jpg", Text = "I booked a pickup in two minutes and the collector arrived exactly on time. My balcony finally has space again." },
+        new { Name = "Ahmed K.",  Role = "Shop owner",  Stars = 5, Photo = "r2.jpg", Text = "We used to throw cardboard away every day. Now it gets collected weekly and we even earn from it." },
+        new { Name = "Mona A.",   Role = "Customer",    Stars = 4, Photo = "r3.jpg", Text = "Clear prices and easy tracking. I like seeing the request move from approved to collected." },
+        new { Name = "Youssef H.", Role = "Collector",  Stars = 5, Photo = "r4.jpg", Text = "The tasks come straight to my phone and I know the address and waste before I leave. Very organised." },
+        new { Name = "Heba R.",   Role = "Customer",    Stars = 5, Photo = "r5.jpg", Text = "Teaching my kids to sort plastic and paper became a weekly habit. The whole building joined in." },
+        new { Name = "Karim S.",  Role = "Cafe owner",  Stars = 5, Photo = "r6.jpg", Text = "Glass and plastic from the cafe are collected without any phone calls. It just works." }
+    };
+}
+
+<style>
+    main > .tw-hero, main > section, main > .tw-marq, main > header { animation: none; }
+
+    /* ===== intro splash (once per session) ===== */
+    #tw-intro { position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center; background: linear-gradient(135deg, #0f3d14, #1b5e20 55%, #2e7d32); color: #fff; text-align: center; animation: tw-curtain .9s 2.6s cubic-bezier(.77,0,.18,1) forwards; }
+    .tw-intro-ring { width: 110px; height: 110px; margin: 0 auto 1.25rem; border-radius: 50%; border: 3px solid rgba(255,255,255,.2); border-top-color: #a5d6a7; display: grid; place-items: center; animation: tw-spin 1.4s linear infinite; }
+    .tw-intro-ring i { font-size: 2.6rem; animation: tw-spin 1.4s linear infinite reverse; }
+    .tw-intro-word { font-size: clamp(2rem, 7vw, 3.4rem); font-weight: 800; letter-spacing: .35em; padding-left: .35em; }
+    .tw-intro-word span { display: inline-block; opacity: 0; transform: translateY(24px); animation: tw-line .5s forwards; }
+    .tw-intro-tag { margin-top: .5rem; color: #c8e6c9; opacity: 0; animation: tw-line .6s 1.7s forwards; }
+    @@keyframes tw-curtain { to { transform: translateY(-100%); visibility: hidden; } }
+
+    .tw-wrap { max-width: 1160px; margin: 0 auto; padding: 0 1.25rem; position: relative; }
+
+    /* ===== hero ===== */
+    .tw-hero { position: relative; overflow: hidden; padding: 4.5rem 0 4rem; margin-top: -1.5rem; }
+    .tw-blob { position: absolute; border-radius: 50%; filter: blur(60px); opacity: .55; animation: tw-float 12s ease-in-out infinite; pointer-events: none; }
+    .tw-b1 { width: 380px; height: 380px; background: #a5d6a7; top: -120px; left: -90px; }
+    .tw-b2 { width: 320px; height: 320px; background: #c5e1a5; top: 60px; right: -100px; animation-delay: -4s; }
+    .tw-split { display: grid; grid-template-columns: 1.05fr .95fr; gap: 3rem; align-items: center; }
+    .tw-pill { display: inline-flex; align-items: center; gap: .5rem; padding: .4rem 1rem; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--g); font-size: .875rem; font-weight: 600; box-shadow: 0 4px 16px rgba(46,125,50,.1); }
+    .tw-pill i { display: inline-block; animation: tw-spin 6s linear infinite; }
+    .tw-h1 { font-size: clamp(2.3rem, 5.6vw, 4rem); font-weight: 800; letter-spacing: -.035em; line-height: 1.06; margin: 1.3rem 0 1rem; }
+    .tw-rot { display: inline-grid; vertical-align: bottom; overflow: hidden; }
+    .tw-rot span { grid-area: 1 / 1; opacity: 0; transform: translateY(100%); animation: tw-rotw 12s infinite; animation-delay: calc(var(--i) * 3s); background: linear-gradient(90deg, #1b5e20, #43a047, #9ccc65); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    @@keyframes tw-rotw { 0% { opacity: 0; transform: translateY(100%); } 5%, 22% { opacity: 1; transform: none; } 27%, 100% { opacity: 0; transform: translateY(-100%); } }
+    .tw-lead { color: var(--muted); font-size: 1.15rem; max-width: 560px; margin: 0 0 1.75rem; }
+    .tw-btns { display: flex; flex-wrap: wrap; gap: .75rem; }
+    .tw-btn { position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: .5rem; padding: .8rem 1.6rem; border-radius: 14px; font-weight: 600; text-decoration: none; cursor: pointer; transition: transform .2s, box-shadow .2s; }
+    .tw-btn-p { background: var(--g); color: #fff; box-shadow: 0 8px 24px rgba(46,125,50,.35); }
+    .tw-btn-p:hover { color: #fff; transform: translateY(-3px); box-shadow: 0 14px 32px rgba(46,125,50,.45); }
+    .tw-btn-p::after { content: ""; position: absolute; top: 0; left: -70%; width: 50%; height: 100%; background: linear-gradient(100deg, transparent, rgba(255,255,255,.45), transparent); transform: skewX(-20deg); animation: tw-sweep 3.2s 1s infinite; }
+    .tw-btn i { transition: transform .2s; } .tw-btn:hover i { transform: translateX(4px); }
+    .tw-btn-g { background: #fff; color: var(--g); border: 1px solid var(--line); }
+    .tw-btn-g:hover { color: var(--g); transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,0,.08); }
+    .tw-trust { display: flex; flex-wrap: wrap; gap: 1.25rem; margin-top: 1.75rem; color: var(--muted); font-size: .9rem; }
+    .tw-trust span { display: inline-flex; align-items: center; gap: .4rem; } .tw-trust i { color: var(--g2); }
+
+    /* photo collage */
+    .tw-collage { position: relative; height: 470px; }
+    .tw-img { position: absolute; margin: 0; overflow: hidden; border-radius: 24px; background: linear-gradient(135deg, #c8e6c9, #a5d6a7); box-shadow: 0 24px 60px rgba(27,94,32,.25); display: grid; place-items: center; }
+    .tw-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .8s ease; }
+    .tw-img:hover img { transform: scale(1.08); }
+    .tw-img .ph { font-size: 3rem; color: rgba(27,94,32,.55); }
+    .tw-c1 { width: 62%; height: 74%; top: 0; right: 0; animation: tw-bob 7s ease-in-out infinite; }
+    .tw-c2 { width: 44%; height: 40%; bottom: 0; left: 4%; animation: tw-bob 6s -2s ease-in-out infinite; }
+    .tw-c3 { width: 36%; height: 32%; bottom: 8%; right: 6%; animation: tw-bob 8s -4s ease-in-out infinite; border: 5px solid #fff; }
+    .tw-float-card { position: absolute; z-index: 3; display: flex; align-items: center; gap: .6rem; padding: .65rem 1rem; border-radius: 14px; background: #fff; box-shadow: 0 14px 34px rgba(0,0,0,.14); font-size: .85rem; font-weight: 600; animation: tw-bob 5s ease-in-out infinite; }
+    .tw-float-card i { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 10px; background: var(--soft); color: var(--g); }
+    .tw-fc1 { top: 8%; left: 0; } .tw-fc2 { bottom: 34%; right: -2%; animation-delay: -2.5s; }
+
+    /* ===== marquee ===== */
+    .tw-marq { overflow: hidden; border-block: 1px solid var(--line); background: #fff; padding: 1rem 0; }
+    .tw-track { display: flex; width: max-content; animation: tw-marq 40s linear infinite; }
+    .tw-track span { display: inline-flex; align-items: center; gap: .65rem; padding-right: 3.25rem; color: #1b5e20; font-weight: 700; font-size: 1.1rem; white-space: nowrap; }
+    .tw-track span i { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--soft); color: var(--g); font-size: 1.05rem; }
+    .tw-track span::after { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--g3); margin-left: 2.6rem; }
+    .tw-marq:hover .tw-track, .tw-reviews:hover .tw-rtrack { animation-play-state: paused; }
+
+    /* ===== stats ===== */
+    .tw-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 1rem; margin: 2.5rem 0 0; position: relative; z-index: 4; }
+    .tw-stat { background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 1.4rem; text-align: center; box-shadow: 0 14px 40px rgba(46,125,50,.12); }
+    .tw-stat b { display: block; font-size: 2.2rem; font-weight: 800; color: var(--g); line-height: 1.1; }
+    .tw-stat span { color: var(--muted); font-size: .9rem; }
+
+    /* ===== sections ===== */
+    .tw-sec { padding: 4.5rem 0; }
+    .tw-wgrid { display: grid; gap: 1.1rem; grid-template-columns: repeat(auto-fit, minmax(205px, 1fr)); }
+    .tw-credit { text-align: center; color: var(--muted); font-size: .8rem; padding-bottom: 1.5rem; }
+    .tw-sec-alt { background: #fff; border-block: 1px solid var(--line); }
+    .tw-h2 { font-size: clamp(1.7rem, 3.6vw, 2.4rem); font-weight: 800; letter-spacing: -.025em; text-align: center; margin: 0 0 .5rem; }
+    .tw-sub { color: var(--muted); text-align: center; max-width: 580px; margin: 0 auto 2.4rem; }
+    .tw-grid { display: grid; gap: 1.1rem; grid-template-columns: repeat(auto-fit, minmax(235px, 1fr)); }
+    .tw-grid-3 { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+    .tw-card { background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 1.6rem; box-shadow: 0 8px 28px rgba(0,0,0,.05); transition: transform .3s, box-shadow .3s, border-color .3s; }
+    .tw-card:hover { transform: translateY(-8px) rotate(-.4deg); box-shadow: 0 22px 46px rgba(46,125,50,.18); border-color: var(--g3); }
+    .tw-ico { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 14px; background: var(--soft); color: var(--g); font-size: 1.4rem; margin-bottom: 1rem; transition: transform .4s, background-color .3s, color .3s; }
+    .tw-card:hover .tw-ico { transform: rotate(-10deg) scale(1.15); background: var(--g); color: #fff; }
+    .tw-card h3 { font-size: 1.12rem; font-weight: 700; margin: 0 0 .4rem; }
+    .tw-card p { color: var(--muted); margin: 0; font-size: .95rem; }
+    .tw-chip { display: inline-block; margin-top: 1rem; padding: .25rem .75rem; border-radius: 999px; background: var(--soft); color: var(--g); font-size: .8rem; font-weight: 700; }
+    .tw-step { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--g); color: #fff; font-weight: 700; margin-bottom: 1rem; animation: tw-pulse 2.4s infinite; }
+
+    /* waste photo cards */
+    .tw-wcard { position: relative; height: 260px; border-radius: 22px; overflow: hidden; background: linear-gradient(135deg, #c8e6c9, #81c784); box-shadow: 0 10px 30px rgba(0,0,0,.08); transition: transform .35s, box-shadow .35s; display: grid; place-items: center; }
+    .tw-wcard:hover { transform: translateY(-8px); box-shadow: 0 24px 50px rgba(46,125,50,.28); }
+    .tw-wcard img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .8s ease; }
+    .tw-wcard:hover img { transform: scale(1.1); }
+    .tw-wcard .ph { font-size: 3.4rem; color: rgba(27,94,32,.45); }
+    .tw-wcard::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, rgba(10,40,14,.82)); }
+    .tw-wcap { position: absolute; z-index: 2; left: 1.1rem; right: 1.1rem; bottom: 1rem; color: #fff; }
+    .tw-wcap h3 { font-size: 1.2rem; font-weight: 700; margin: 0; }
+    .tw-wcap div { font-weight: 700; color: #b9f6ca; } .tw-wcap small { color: #e0f2e1; font-weight: 500; }
+
+    /* about teaser */
+    .tw-about { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 3rem; align-items: center; }
+    .tw-about > div { min-width: 0; } .tw-about .tw-h2 { text-align: left; overflow-wrap: anywhere; font-size: clamp(1.6rem, 3vw, 2.2rem); }
+    .tw-about .tw-img { position: relative; height: 380px; width: 100%; }
+    .tw-about p { color: var(--muted); }
+    .tw-list { list-style: none; padding: 0; margin: 1.25rem 0; } .tw-list li { display: flex; gap: .6rem; margin-bottom: .6rem; } .tw-list i { color: var(--g2); margin-top: .2rem; }
+
+    /* reviews */
+    .tw-reviews { overflow: hidden; padding: .75rem 0 1.5rem; mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); }
+    .tw-rtrack { display: flex; width: max-content; animation: tw-marq 50s linear infinite; }
+    .tw-rcard { width: 340px; flex: none; margin-right: 1.25rem; background: #fff; border: 1px solid var(--line); border-radius: 22px; padding: 1.5rem; box-shadow: 0 10px 30px rgba(0,0,0,.06); }
+    .tw-stars { color: #f5b301; letter-spacing: 2px; margin-bottom: .6rem; } .tw-stars .off { color: #d9dfd6; }
+    .tw-rcard p { color: #33443a; margin: 0 0 1.1rem; }
+    .tw-who { display: flex; align-items: center; gap: .75rem; }
+    .tw-av { position: relative; width: 46px; height: 46px; border-radius: 50%; overflow: hidden; background: linear-gradient(135deg, #43a047, #1b5e20); color: #fff; font-weight: 700; display: grid; place-items: center; flex: none; }
+    .tw-av img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .tw-who b { display: block; line-height: 1.2; } .tw-who small { color: var(--muted); }
+
+    .tw-cta { position: relative; overflow: hidden; text-align: center; padding: 4.2rem 1.25rem; margin: 0 0 3.5rem; border-radius: 28px; color: #fff; background: linear-gradient(120deg, #1b5e20, #2e7d32, #43a047, #2e7d32); background-size: 300% 100%; animation: tw-shine 10s ease infinite; }
+    .tw-cta .tw-h2 { color: #fff; } .tw-cta .tw-sub { color: #d9f0da; } .tw-cta .tw-btn { background: #fff; color: var(--g); }
+
+    @@media (max-width: 900px) { .tw-split, .tw-about { grid-template-columns: minmax(0, 1fr); } .tw-collage { height: 380px; } .tw-about .tw-h2 { text-align: center; } }
+    @@media (prefers-reduced-motion: reduce) { #tw-intro { display: none; } .tw-rot span:first-child { opacity: 1; transform: none; } .tw-reviews { overflow-x: auto; } .tw-lines div, .tw-intro-word span { opacity: 1; transform: none; } }
+</style>
+
+<div id="tw-intro" aria-hidden="true">
+    <div>
+        <div class="tw-intro-ring"><i class="bi bi-recycle"></i></div>
+        <div class="tw-intro-word">@foreach (var (ch, i) in "TADWEERK".Select((c, i) => (c, i))) { <span style="animation-delay:@(250 + i * 120)ms">@ch</span> }</div>
+        <div class="tw-intro-tag">Turning waste into value</div>
+    </div>
+</div>
+<script>try { if (sessionStorage.getItem('twIntro')) { document.getElementById('tw-intro').remove(); } else { sessionStorage.setItem('twIntro', '1'); } } catch (e) { }</script>
+
+<header class="tw-hero">
+    <div class="tw-blob tw-b1" aria-hidden="true"></div><div class="tw-blob tw-b2" aria-hidden="true"></div>
+    <div class="tw-wrap tw-split">
+        <div>
+            <span class="tw-pill"><i class="bi bi-recycle" aria-hidden="true"></i> Smart waste collection in Egypt</span>
+            <h1 class="tw-h1">Turn your <span class="tw-rot" aria-hidden="true"><span style="--i:0">plastic</span><span style="--i:1">paper</span><span style="--i:2">metal</span><span style="--i:3">glass</span></span><span class="visually-hidden">waste</span> into value.</h1>
+            <p class="tw-lead">TADWEERK connects homes and shops with verified collectors. Request a pickup, get it approved, and get paid for what you recycle - while helping save the planet.</p>
+            <div class="tw-btns">
+                <a asp-controller="Account" asp-action="Register" class="tw-btn tw-btn-p">Get started <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+                <a asp-controller="Home" asp-action="About" class="tw-btn tw-btn-g">Why recycle?</a>
+            </div>
+            <div class="tw-trust">
+                <span><i class="bi bi-patch-check-fill" aria-hidden="true"></i> Admin-approved pickups</span>
+                <span><i class="bi bi-cash-coin" aria-hidden="true"></i> Clear prices per kg</span>
+                <span><i class="bi bi-shield-check" aria-hidden="true"></i> Your data stays private</span>
+            </div>
+        </div>
+        <div class="tw-collage" aria-hidden="true">
+            <figure class="tw-img tw-c1"><i class="bi bi-recycle ph"></i><img src="~/images/hero.jpg" data-fb="@heroFb" alt="" onerror="twImgFail(this)" /></figure>
+            <figure class="tw-img tw-c2"><i class="bi bi-cup-straw ph"></i><img src="~/images/plastic.jpg" data-fb="@plasticFb" alt="" onerror="twImgFail(this)" /></figure>
+            <figure class="tw-img tw-c3"><i class="bi bi-newspaper ph"></i><img src="~/images/paper.jpg" data-fb="@paperFb" alt="" onerror="twImgFail(this)" /></figure>
+            <div class="tw-float-card tw-fc1"><i class="bi bi-check2-circle"></i>Request approved</div>
+            <div class="tw-float-card tw-fc2"><i class="bi bi-truck"></i>Collector on the way</div>
+        </div>
+    </div>
+</header>
+
+@if (types.Any())
+{
+    <div class="tw-marq" aria-hidden="true">
+        <div class="tw-track">
+            @for (var k = 0; k < 8; k++)
+            {
+                foreach (var w in types)
+                {
+                    <span><i class="bi @IconFor(w.Name)"></i>@w.Name</span>
+                }
+            }
+        </div>
+    </div>
+}
+
+<section class="tw-wrap" aria-label="Our impact so far">
+    <div class="tw-stats">
+        <div class="tw-stat rv"><b><span data-n="@Model.TotalKg.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)" data-dec="0">@Model.TotalKg.ToString("0")</span> kg</b><span>Waste collected</span></div>
+        <div class="tw-stat rv" style="--d:.08s"><b><span data-n="@Model.CompletedRequests" data-dec="0">@Model.CompletedRequests</span></b><span>Pickups completed</span></div>
+        <div class="tw-stat rv" style="--d:.16s"><b><span data-n="@Model.Collectors" data-dec="0">@Model.Collectors</span></b><span>Active collectors</span></div>
+        <div class="tw-stat rv" style="--d:.24s"><b><span data-n="@Model.Customers" data-dec="0">@Model.Customers</span></b><span>Homes &amp; shops</span></div>
+    </div>
+</section>
+
+<section class="tw-sec">
+    <div class="tw-wrap">
+        <h2 class="tw-h2 rv">What do you want to do?</h2>
+        <p class="tw-sub rv" style="--d:.08s">Choose the account that fits you when you register.</p>
+        <div class="tw-grid tw-grid-3">
+            <div class="tw-card rv"><div class="tw-ico"><i class="bi bi-house-heart" aria-hidden="true"></i></div><h3>Recycle from home</h3><p>Schedule a pickup from your doorstep and get paid per kilo.</p><span class="tw-chip">Customer</span></div>
+            <div class="tw-card rv" style="--d:.12s"><div class="tw-ico"><i class="bi bi-shop" aria-hidden="true"></i></div><h3>Clear shop waste</h3><p>Regular pickups for shops and companies, with clear pricing.</p><span class="tw-chip">Business</span></div>
+            <div class="tw-card rv" style="--d:.24s"><div class="tw-ico"><i class="bi bi-truck" aria-hidden="true"></i></div><h3>Collect and earn</h3><p>Receive approved pickups assigned to you and track each one.</p><span class="tw-chip">Collector</span></div>
+        </div>
+    </div>
+</section>
+
+@if (types.Any())
+{
+    <section class="tw-sec tw-sec-alt">
+        <div class="tw-wrap">
+            <h2 class="tw-h2 rv">What we collect</h2>
+            <p class="tw-sub rv" style="--d:.08s">Transparent prices in EGP per kilogram.</p>
+            <div class="tw-wgrid">
+                @{ var idx = 0; }
+                @foreach (var w in types)
+                {
+                    <div class="tw-wcard rv" style="--d:@((idx++ % 6) * 80)ms">
+                        <i class="bi @IconFor(w.Name) ph" aria-hidden="true"></i>
+                        <img src="~/images/@(Slug(w.Name)).jpg" data-fb="@(wasteFb.TryGetValue(Slug(w.Name), out var fb) ? fb : null)" alt="@w.Name ready for recycling" loading="lazy" onerror="twImgFail(this)" />
+                        <div class="tw-wcap"><h3>@w.Name</h3><div><span data-n="@w.PricePerKg.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)">@w.PricePerKg.ToString("N2")</span> <small>EGP / kg</small></div></div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+<section class="tw-sec">
+    <div class="tw-wrap">
+        <h2 class="tw-h2 rv">How it works</h2>
+        <p class="tw-sub rv" style="--d:.08s">Four simple steps from your door to the recycling plant.</p>
+        <div class="tw-grid">
+            <div class="tw-card rv"><div class="tw-step">1</div><h3>Create an account</h3><p>Pick Customer, Business or Collector.</p></div>
+            <div class="tw-card rv" style="--d:.1s"><div class="tw-step">2</div><h3>Request a pickup</h3><p>Select your waste types, quantities and agree to the accuracy policy.</p></div>
+            <div class="tw-card rv" style="--d:.2s"><div class="tw-step">3</div><h3>Admin approval</h3><p>We review it and assign a collector.</p></div>
+            <div class="tw-card rv" style="--d:.3s"><div class="tw-step">4</div><h3>We collect</h3><p>The collector picks it up and completes the order.</p></div>
+        </div>
+    </div>
+</section>
+
+<section class="tw-sec tw-sec-alt">
+    <div class="tw-wrap tw-about">
+        <figure class="tw-img rv"><i class="bi bi-globe-europe-africa ph" aria-hidden="true"></i><img src="~/images/about.jpg" data-fb="@aboutFb" alt="A man collecting cardboard for recycling" loading="lazy" onerror="twImgFail(this)" /></figure>
+        <div class="rv" style="--d:.1s">
+            <span class="tw-chip" style="margin-top:0">Why it matters</span>
+            <h2 class="tw-h2 mt-2">We are cleaning up tomorrow, one pickup at a time.</h2>
+            <p>Every bottle, box and can that gets recycled is one less item in a landfill and one less thing made from scratch.</p>
+            <ul class="tw-list">
+                <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Less waste in landfills and on our streets</li>
+                <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Less energy and fewer raw materials used</li>
+                <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Real income for families, shops and collectors</li>
+            </ul>
+            <a asp-controller="Home" asp-action="About" class="tw-btn tw-btn-p">Read our story <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        </div>
+    </div>
+</section>
+
+<section class="tw-sec">
+    <div class="tw-wrap">
+        <h2 class="tw-h2 rv">Loved by people who recycle</h2>
+        <p class="tw-sub rv" style="--d:.08s">What customers, shops and collectors say about TADWEERK.</p>
+    </div>
+    <div class="tw-reviews">
+        <div class="tw-rtrack">
+            @for (var k = 0; k < 2; k++)
+            {
+                foreach (var r in reviews)
+                {
+                    <article class="tw-rcard" aria-hidden="@(k == 1 ? "true" : null)">
+                        <div class="tw-stars" role="img" aria-label="@r.Stars out of 5 stars">@for (var s = 1; s <= 5; s++) { <i class="bi bi-star-fill @(s > r.Stars ? "off" : "")"></i> }</div>
+                        <p>@r.Text</p>
+                        <div class="tw-who">
+                            <span class="tw-av">@r.Name.Substring(0, 1)<img src="~/images/reviewers/@r.Photo" alt="" loading="lazy" onerror="twImgFail(this)" /></span>
+                            <span><b>@r.Name</b><small>@r.Role</small></span>
+                        </div>
+                    </article>
+                }
+            }
+        </div>
+    </div>
+</section>
+
+<section class="tw-wrap">
+    <div class="tw-cta rv">
+        <h2 class="tw-h2">Ready to recycle smarter?</h2>
+        <p class="tw-sub">Create your free account and request your first pickup in minutes.</p>
+        <a asp-controller="Account" asp-action="Register" class="tw-btn">Create account <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+    </div>
+</section>
+
+<p class="tw-credit">Photos: Wikimedia Commons contributors, used under Creative Commons licences (see each file page on commons.wikimedia.org for the authors).</p>

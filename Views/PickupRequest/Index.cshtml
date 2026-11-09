@@ -1,0 +1,79 @@
+@model IEnumerable<RecyclingApp.Models.PickupRequest>
+@{
+    ViewData["Title"] = "My Pickup Requests";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="text-primary-green"><i class="bi bi-box-seam me-2" aria-hidden="true"></i>My Pickup Requests</h2>
+    <a asp-action="Create" class="btn btn-primary-green"><i class="bi bi-plus-lg"></i> New Request</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-light border text-center p-5">
+        <i class="bi bi-inbox fs-1 text-muted mb-3 d-block"></i>
+        <h4>No requests yet!</h4>
+        <p class="text-muted">Start recycling today and earn rewards.</p>
+        <a asp-action="Create" class="btn btn-primary-green mt-2">Create First Request</a>
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Scheduled Date</th>
+                    <th>Status</th>
+                    <th>Items Count</th>
+                    <th>Total Value (EGP)</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.Id</td>
+                        <td>@item.ScheduledAt.ToString("MMM dd, yyyy")</td>
+                        <td>
+                            @switch (item.Status)
+                            {
+                                case "Pending":
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                    break;
+                                case "Approved":
+                                        <span class="badge bg-info text-dark">Approved - waiting for collector</span>
+                                        break;
+                                    case "Failed":
+                                        <span class="badge bg-dark">Failed - fee applied</span>
+                                        break;
+                                    case "Rejected":
+                                        <span class="badge bg-danger">Rejected</span>
+                                        break;
+                                    case "Accepted":
+                                    <span class="badge bg-info text-dark">Accepted</span>
+                                    break;
+                                case "Collected":
+                                    <span class="badge bg-primary">Collected</span>
+                                    break;
+                                case "Completed":
+                                    <span class="badge bg-success">Completed</span>
+                                    break;
+                                default:
+                                    <span class="badge bg-secondary">@item.Status</span>
+                                    break;
+                            }
+                        </td>
+                       <td>@item.RequestItems?.Count()</td>
+                        <td>@item.TotalValue.ToString("N2") EGP</td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">Details</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
