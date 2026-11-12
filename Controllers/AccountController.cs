@@ -51,8 +51,9 @@ namespace RecyclingApp.Controllers
                 {
                     UserName = model.Email,
                     Email = model.Email,
-                    Name = model.Name,
+                    Name = model.Name.Trim(),
                     Phone = model.Phone,
+                    PhoneNumber = model.Phone,
                     Address = model.Address,
                     Role = model.Role,
                     EmailConfirmed = true

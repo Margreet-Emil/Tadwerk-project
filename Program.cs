@@ -34,10 +34,15 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 var app = builder.Build();
 
-// Seed Roles and Admin user
+// Create database tables, then seed Roles and Admin user
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
+
+    // Apply migrations (creates the tables on first run)
+    var db = services.GetRequiredService<ApplicationDbContext>();
+    await db.Database.MigrateAsync();
+
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
 
@@ -51,7 +56,7 @@ using (var scope = app.Services.CreateScope())
         }
     }
 
-    // Create the single admin user (credentials come from appsettings.json -> AdminSettings)
+    // Create the single admin user (credentials come from appsettings -> AdminSettings)
     var adminEmail = builder.Configuration["AdminSettings:Email"]!;
     var adminPassword = builder.Configuration["AdminSettings:Password"]!;
 

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using RecyclingApp.Data;
 using RecyclingApp.Models;
 using RecyclingApp.ViewModels;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -81,9 +82,49 @@ namespace RecyclingApp.Controllers
             }
 
             var user = await _userManager.FindByIdAsync(id);
-            if (user != null)
+            if (user == null)
             {
-                await _userManager.DeleteAsync(user);
+                return RedirectToAction("ManageUsers");
+            }
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                // 1) If the user is a Collector: detach them from their assigned requests
+                var collectedRequests = await _context.PickupRequests
+                    .Where(p => p.CollectorId == id)
+                    .ToListAsync();
+                foreach (var r in collectedRequests)
+                {
+                    r.CollectorId = null;
+                    if (r.Status == "Approved" || r.Status == "Accepted")
+                        r.Status = "Pending"; // back to pending so admin can assign another collector
+                }
+
+                // 2) If the user is a Customer/Business: delete their requests (RequestItems cascade)
+                var ownRequests = await _context.PickupRequests
+                    .Where(p => p.UserId == id)
+                    .ToListAsync();
+                _context.PickupRequests.RemoveRange(ownRequests);
+
+                await _context.SaveChangesAsync();
+
+                // 3) Delete the user itself
+                var result = await _userManager.DeleteAsync(user);
+                if (!result.Succeeded)
+                {
+                    await transaction.RollbackAsync();
+                    TempData["Error"] = string.Join(", ", result.Errors.Select(e => e.Description));
+                    return RedirectToAction("ManageUsers");
+                }
+
+                await transaction.CommitAsync();
+                TempData["Success"] = $"User {user.Name} deleted.";
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                TempData["Error"] = "Could not delete the user.";
             }
 
             return RedirectToAction("ManageUsers");
